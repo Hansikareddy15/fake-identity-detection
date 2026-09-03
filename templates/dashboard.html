@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Document Validation Dashboard</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f6f8;
+        }
+
+        .header {
+            background: #1f2937;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow:
+                0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            margin: 0;
+            font-size: 35px;
+        }
+
+        .card p {
+            font-size: 17px;
+            color: #555;
+        }
+
+        .section {
+            background: white;
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow:
+                0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .tampering {
+            display: grid;
+            grid-template-columns:
+                repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .tamper-box {
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            background: #f1f1f1;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #eee;
+        }
+
+        @media (max-width: 600px) {
+
+            .tampering {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="header">
+
+    <h1>Document Validation System</h1>
+
+    <p>
+        Passport & Document Verification Dashboard
+    </p>
+
+</div>
+
+
+<div class="container">
+
+
+    <!-- =====================================
+         STATISTICS
+         ===================================== -->
+
+    <div class="cards">
+
+        <div class="card">
+
+            <h2 id="total">0</h2>
+
+            <p>Total Documents</p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 id="valid">0</h2>
+
+            <p>Valid</p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 id="suspicious">0</h2>
+
+            <p>Suspicious</p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 id="invalid">0</h2>
+
+            <p>Invalid</p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================
+         TAMPERING
+         ===================================== -->
+
+    <div class="section">
+
+        <h2>Tampering Detection</h2>
+
+        <div class="tampering">
+
+            <div class="tamper-box">
+
+                <h3>LOW</h3>
+
+                <h2 id="low">0</h2>
+
+            </div>
+
+
+            <div class="tamper-box">
+
+                <h3>MEDIUM</h3>
+
+                <h2 id="medium">0</h2>
+
+            </div>
+
+
+            <div class="tamper-box">
+
+                <h3>HIGH</h3>
+
+                <h2 id="high">0</h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================
+         SEARCH
+         ===================================== -->
+
+    <div class="section">
+
+        <h2>Search Validation History</h2>
+
+        <div class="search-box">
+
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Enter passport number or name"
+            >
+
+            <button onclick="searchRecords()">
+                Search
+            </button>
+
+            <button onclick="loadHistory()">
+                Show All
+            </button>
+
+        </div>
+
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Passport</th>
+
+                    <th>Name</th>
+
+                    <th>Status</th>
+
+                    <th>Score</th>
+
+                    <th>Tampering</th>
+
+                    <th>Time</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="historyTable">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+// ==========================================
+// LOAD STATISTICS
+// ==========================================
+
+async function loadStatistics() {
+
+    const response =
+        await fetch("/statistics");
+
+    const data =
+        await response.json();
+
+
+    document.getElementById("total")
+        .innerText =
+        data.total_documents;
+
+
+    document.getElementById("valid")
+        .innerText =
+        data.valid;
+
+
+    document.getElementById("suspicious")
+        .innerText =
+        data.suspicious;
+
+
+    document.getElementById("invalid")
+        .innerText =
+        data.invalid;
+
+
+    document.getElementById("low")
+        .innerText =
+        data.tampering.LOW;
+
+
+    document.getElementById("medium")
+        .innerText =
+        data.tampering.MEDIUM;
+
+
+    document.getElementById("high")
+        .innerText =
+        data.tampering.HIGH;
+
+}
+
+
+// ==========================================
+// DISPLAY RECORDS
+// ==========================================
+
+function displayRecords(records) {
+
+    const table =
+        document.getElementById(
+            "historyTable"
+        );
+
+
+    table.innerHTML = "";
+
+
+    records.forEach(function(record) {
+
+        const row =
+            document.createElement("tr");
+
+
+        row.innerHTML = `
+
+            <td>
+                ${record.passport_number}
+            </td>
+
+            <td>
+                ${record.name}
+            </td>
+
+            <td>
+                ${record.status}
+            </td>
+
+            <td>
+                ${record.score}
+            </td>
+
+            <td>
+                ${record.tampering_level}
+            </td>
+
+            <td>
+                ${record.timestamp}
+            </td>
+
+        `;
+
+
+        table.appendChild(row);
+
+    });
+
+}
+
+
+// ==========================================
+// LOAD ALL HISTORY
+// ==========================================
+
+async function loadHistory() {
+
+    const response =
+        await fetch("/history");
+
+    const data =
+        await response.json();
+
+    displayRecords(data.records);
+
+}
+
+
+// ==========================================
+// SEARCH RECORDS
+// ==========================================
+
+async function searchRecords() {
+
+    const searchText =
+        document.getElementById(
+            "searchInput"
+        ).value;
+
+
+    if (!searchText.trim()) {
+
+        loadHistory();
+
+        return;
+    }
+
+
+    const response =
+        await fetch(
+            "/search?q=" +
+            encodeURIComponent(searchText)
+        );
+
+
+    const data =
+        await response.json();
+
+
+    displayRecords(data.records);
+
+}
+
+
+// ==========================================
+// LOAD EVERYTHING
+// ==========================================
+
+async function loadDashboard() {
+
+    await loadStatistics();
+
+    await loadHistory();
+
+}
+
+
+loadDashboard();
+
+</script>
+
+
+</body>
+
+</html>
